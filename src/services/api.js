@@ -8,7 +8,9 @@ const AI_TOKEN = import.meta.env.VITE_AI_TOKEN;
  */
 export const fetchISSLocation = async () => {
   try {
-    const response = await axios.get('https://api.open-notify.org/iss-now.json');
+    const isProd = import.meta.env.PROD;
+    const url = isProd ? '/api/iss-now' : 'http://api.open-notify.org/iss-now.json';
+    const response = await axios.get(url);
     if (response.data.message === 'success') {
       return {
         lat: parseFloat(response.data.iss_position.latitude),
@@ -28,7 +30,9 @@ export const fetchISSLocation = async () => {
  */
 export const fetchAstronauts = async () => {
   try {
-    const response = await axios.get('https://api.open-notify.org/astros.json');
+    const isProd = import.meta.env.PROD;
+    const url = isProd ? '/api/astros' : 'http://api.open-notify.org/astros.json';
+    const response = await axios.get(url);
     if (response.data.message === 'success') {
       return {
         count: response.data.number,
