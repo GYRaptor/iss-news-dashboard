@@ -172,16 +172,58 @@ export const fetchNews = async () => {
   }
 };
 
-/**
- * Chat with Hugging Face Inference API (Mistral 7B)
- */
 export const chatWithMistral = async (prompt, systemContext) => {
-  if (!AI_TOKEN) {
-    throw new Error('AI Token is missing. Please set VITE_AI_TOKEN.');
+  const aiToken = import.meta.env.VITE_AI_TOKEN?.trim();
+
+  const getLocalResponse = (p, ctx) => {
+    const q = p.toLowerCase();
+    const latMatch = ctx.match(/- Latitude:\s*([^\n]+)/);
+    const lonMatch = ctx.match(/- Longitude:\s*([^\n]+)/);
+    const lat = latMatch ? latMatch[1] : 'Unknown';
+    const lon = lonMatch ? lonMatch[1] : 'Unknown';
+    const speedMatch = ctx.match(/- Speed:\s*([^\n]+)/);
+    const speed = speedMatch ? speedMatch[1] : 'Unknown';
+    const locMatch = ctx.match(/- Nearest Location:\s*([^\n]+)/);
+    const location = locMatch ? locMatch[1] : 'Unknown';
+    const astrosMatch = ctx.match(/- Astronauts in space:\s*([^\n]+)/);
+    const astroNamesMatch = ctx.match(/- Names:\s*([^\n]+)/);
+    const astroCount = astrosMatch ? astrosMatch[1] : '0';
+    const astroNames = astroNamesMatch ? astroNamesMatch[1] : '';
+
+    if (q.includes('coordinate') || q.includes('latitude') || q.includes('longitude') || q.includes('where is the iss') || q.includes('position') || q.includes('location')) {
+      return `The International Space Station (ISS) is currently located at Coordinates: ${lat} Latitude, ${lon} Longitude. The nearest place below the ISS is estimated to be "${location}".`;
+    }
+    
+    if (q.includes('speed') || q.includes('velocity') || q.includes('fast') || q.includes('traveling')) {
+      return `The ISS is currently traveling at a velocity of approximately ${speed}.`;
+    }
+    
+    if (q.includes('astronaut') || q.includes('people') || q.includes('who is in space') || q.includes('person') || q.includes('crew') || q.includes('aboard')) {
+      return `There are currently ${astroCount} astronauts aboard the ISS. ${astroNames ? `Their names are: ${astroNames}.` : ''}`;
+    }
+    
+    if (q.includes('news') || q.includes('headline') || q.includes('article') || q.includes('story') || q.includes('headlines')) {
+      const headlines = [];
+      const lines = ctx.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].match(/^\d+\.\s*Title:/)) {
+          headlines.push(lines[i].replace(/^\d+\.\s*Title:\s*/, ''));
+        }
+      }
+      if (headlines.length > 0) {
+        return `Here are the latest space & global headlines from the dashboard:\n\n` + headlines.map((h, idx) => `🔹 ${idx + 1}. ${h}`).join('\n');
+      }
+      return `No recent news headlines are currently available in the dashboard data.`;
+    }
+    
+    return `I can only answer questions based on the live dashboard data (ISS coordinates, velocity, astronauts, and news headlines). Ask me about where the ISS is, who is aboard, or the latest news stories!`;
+  };
+
+  if (!aiToken) {
+    console.warn('AI Token is missing. Falling back to local smart responder.');
+    return getLocalResponse(prompt, systemContext);
   }
 
-  // Constructing a prompt format that Mistral-Instruct expects
-  // <s>[INST] {system_prompt} {user_message} [/INST]
   const fullPrompt = `<s>[INST] ${systemContext}\n\nUser: ${prompt} [/INST]`;
 
   try {
@@ -191,25 +233,30 @@ export const chatWithMistral = async (prompt, systemContext) => {
         inputs: fullPrompt,
         parameters: {
           max_new_tokens: 250,
-          temperature: 0.1, // Keep it factual and deterministic based on context
+          temperature: 0.1,
           return_full_text: false,
         }
       },
       {
         headers: {
-          'Authorization': `Bearer ${AI_TOKEN}`,
+          'Authorization': `Bearer ${aiToken}`,
           'Content-Type': 'application/json'
         }
       }
     );
 
     if (response.data && response.data.length > 0 && response.data[0].generated_text) {
-      let reply = response.data[0].generated_text.trim();
-      return reply;
+      return response.data[0].generated_text.trim();
     }
+    
+    if (response.data && response.data.error) {
+      console.warn('Hugging Face model error. Falling back to local smart responder:', response.data.error);
+      return getLocalResponse(prompt, systemContext);
+    }
+
     throw new Error('Invalid response from AI model');
   } catch (error) {
-    console.error('API Error (chatWithMistral):', error);
-    throw error;
+    console.warn('Hugging Face request failed. Falling back to local smart responder:', error.message);
+    return getLocalResponse(prompt, systemContext);
   }
 };
