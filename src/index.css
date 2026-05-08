@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+/* ========================================
+   Design System — ISS & News Hub
+   ======================================== */
+
+/* Custom theme tokens */
+@theme {
+  --color-background-light: #f8fafc;
+  --color-background-dark: #0b1120;
+  --color-card-light: rgba(255, 255, 255, 0.72);
+  --color-card-dark: rgba(15, 23, 42, 0.72);
+  --color-accent-blue: #3b82f6;
+  --color-accent-purple: #8b5cf6;
+  --color-accent-cyan: #06b6d4;
+}
+
+/* ---- Base Layer ---- */
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222.2 84% 4.9%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+  }
+
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    @apply bg-slate-50 text-slate-900 dark:bg-[#0b1120] dark:text-slate-50 transition-colors duration-300;
+  }
+}
+
+/* ---- Utility Layer ---- */
+@layer utilities {
+  .glass {
+    @apply bg-white/72 dark:bg-slate-800/60 backdrop-blur-xl
+           border border-white/30 dark:border-slate-700/40
+           shadow-[0_8px_32px_rgba(0,0,0,0.06)]
+           dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)];
+  }
+
+  .glass-hover {
+    @apply hover:shadow-[0_16px_48px_rgba(0,0,0,0.1)]
+           dark:hover:shadow-[0_16px_48px_rgba(0,0,0,0.45)]
+           hover:-translate-y-0.5
+           transition-all duration-300 ease-out;
+  }
+
+  .section-heading {
+    @apply text-2xl sm:text-3xl font-extrabold tracking-tight;
+  }
+
+  .section-subtext {
+    @apply text-sm text-slate-500 dark:text-slate-400 mt-1;
+  }
+
+  .stat-icon {
+    @apply p-3 rounded-xl flex items-center justify-center;
+  }
+
+  .stat-label {
+    @apply text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400;
+  }
+
+  .stat-value {
+    @apply text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100;
+  }
+}
+
+/* ---- Custom Scrollbar ---- */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
+
+/* ---- Leaflet Fix ---- */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  border-radius: 1rem;
+}
+
+/* ---- Fade-in animation ---- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out both;
+}
+
+/* Staggered delay helpers */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
